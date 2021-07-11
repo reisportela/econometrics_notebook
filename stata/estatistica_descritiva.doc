@@ -1,0 +1,18 @@
+{\rtf1\fs24
+\trowd\trgaph75\trleft-75\intbl\trqc\clbrdrt\brdrs\cellx1296\clbrdrt\brdrs\cellx1872\clbrdrt\brdrs\cellx2736\clbrdrt\brdrs\cellx3600\clbrdrt\brdrs\cellx4464\clbrdrt\brdrs\cellx5328\clbrdrt\brdrs\cellx5904
+\ql \cell\qc (1)\cell\qc (2)\cell\qc (3)\cell\qc (4)\cell\qc (5)\cell\qc (6)\cell\row
+\trowd\trgaph75\trleft-75\trqc\cellx1296\cellx1872\cellx2736\cellx3600\cellx4464\cellx5328\cellx5904
+\trowd\trgaph75\trleft-75\trqc\clbrdrb\brdrs\cellx1296\clbrdrb\brdrs\cellx1872\clbrdrb\brdrs\cellx2736\clbrdrb\brdrs\cellx3600\clbrdrb\brdrs\cellx4464\clbrdrb\brdrs\cellx5328\clbrdrb\brdrs\cellx5904
+\ql VARIABLES\cell\qc N\cell\qc mean\cell\qc sd\cell\qc p10\cell\qc p50\cell\qc p99\cell\row
+\trowd\trgaph75\trleft-75\trqc\cellx1296\cellx1872\cellx2736\cellx3600\cellx4464\cellx5328\cellx5904
+\ql \cell\qc \cell\qc \cell\qc \cell\qc \cell\qc \cell\qc \cell\row
+\ql wage\cell\qc 526\cell\qc 5.896\cell\qc 3.693\cell\qc 2.920\cell\qc 4.650\cell\qc 20\cell\row
+\ql educ\cell\qc 526\cell\qc 12.56\cell\qc 2.769\cell\qc 9\cell\qc 12\cell\qc 18\cell\row
+\ql exper\cell\qc 526\cell\qc 17.02\cell\qc 13.57\cell\qc 2\cell\qc 13.50\cell\qc 49\cell\row
+\ql female\cell\qc 526\cell\qc 0.479\cell\qc 0.500\cell\qc 0\cell\qc 0\cell\qc 1\cell\row
+\ql nonwhite\cell\qc 526\cell\qc 0.103\cell\qc 0.304\cell\qc 0\cell\qc 0\cell\qc 1\cell\row
+\ql married\cell\qc 526\cell\qc 0.608\cell\qc 0.489\cell\qc 0\cell\qc 1\cell\qc 1\cell\row
+\ql numdep\cell\qc 526\cell\qc 1.044\cell\qc 1.262\cell\qc 0\cell\qc 1\cell\qc 5\cell\row
+\trowd\trgaph75\trleft-75\trqc\trbrdrb\brdrs\clbrdrb\brdrs\cellx1296\clbrdrb\brdrs\cellx1872\clbrdrb\brdrs\cellx2736\clbrdrb\brdrs\cellx3600\clbrdrb\brdrs\cellx4464\clbrdrb\brdrs\cellx5328\clbrdrb\brdrs\cellx5904
+\ql \cell\qc \cell\qc \cell\qc \cell\qc \cell\qc \cell\qc \cell\row
+}

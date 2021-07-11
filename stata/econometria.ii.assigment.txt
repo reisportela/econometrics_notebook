@@ -1,0 +1,1758 @@
+---------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/miguelportela/Documents/GitHub/econometrics_notebook/stata/econometria.ii.assig
+> ment.txt
+  log type:  text
+ opened on:  11 Jul 2021, 15:49:21
+
+. 
+. // # 1. ler e fazer uma 1ª descrição dos dados
+. 
+. use WAGE1, clear                // ficheiro de dados 'original'
+
+. 
+.     // ==>> definição da amostra
+. 
+.             // - de forma a garantir que a análise é feita sobre a mesma base de dados
+.             // vamos apagar as observações que tenham valores omissos ("missings") nalguma
+.             // das variáveis relevantes para a análise
+.             
+.                         // - colocar à frente do 'rowmiss' as variáveis que fazem parte do modelo
+.             // mais completo
+. 
+.             egen nmiss = rowmiss(lwage educ exper female nonwhite married numdep)
+
+.                 tab nmiss
+
+      nmiss |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |        526      100.00      100.00
+------------+-----------------------------------
+      Total |        526      100.00
+
+.                 keep if nmiss == 0
+(0 observations deleted)
+
+.                     drop nmiss
+
+. 
+.     // # 1.1 1ª descrição dos dados
+. 
+.         describe                // - este comando descreve os dados em memória
+
+Contains data from WAGE1.dta
+ Observations:           526                  
+    Variables:            24                  16 Sep 1996 15:52
+---------------------------------------------------------------------------------------------------
+Variable      Storage   Display    Value
+    name         type    format    label      Variable label
+---------------------------------------------------------------------------------------------------
+wage            float   %8.2g                 average hourly earnings
+educ            byte    %8.0g                 years of education
+exper           byte    %8.0g                 years potential experience
+tenure          byte    %8.0g                 years with current employer
+nonwhite        byte    %8.0g                 =1 if nonwhite
+female          byte    %8.0g                 =1 if female
+married         byte    %8.0g                 =1 if married
+numdep          byte    %8.0g                 number of dependents
+smsa            byte    %8.0g                 =1 if live in SMSA
+northcen        byte    %8.0g                 =1 if live in north central U.S
+south           byte    %8.0g                 =1 if live in southern region
+west            byte    %8.0g                 =1 if live in western region
+construc        byte    %8.0g                 =1 if work in construc. indus.
+ndurman         byte    %8.0g                 =1 if in nondur. manuf. indus.
+trcommpu        byte    %8.0g                 =1 if in trans, commun, pub ut
+trade           byte    %8.0g                 =1 if in wholesale or retail
+services        byte    %8.0g                 =1 if in services indus.
+profserv        byte    %8.0g                 =1 if in prof. serv. indus.
+profocc         byte    %8.0g                 =1 if in profess. occupation
+clerocc         byte    %8.0g                 =1 if in clerical occupation
+servocc         byte    %8.0g                 =1 if in service occupation
+lwage           float   %9.0g                 log(wage)
+expersq         int     %9.0g                 exper^2
+tenursq         int     %9.0g                 tenure^2
+---------------------------------------------------------------------------------------------------
+Sorted by: 
+     Note: Dataset has changed since last saved.
+
+.         codebook, compact       // - por exemplo, permite perceber os valores únicos de cada vari
+> ável, 
+
+Variable   Obs Unique      Mean        Min       Max  Label
+---------------------------------------------------------------------------------------------------
+wage       526    241  5.896103        .53     24.98  average hourly earnings
+educ       526     18  12.56274          0        18  years of education
+exper      526     51  17.01711          1        51  years potential experience
+tenure     526     34  5.104563          0        44  years with current employer
+nonwhite   526      2  .1026616          0         1  =1 if nonwhite
+female     526      2  .4790875          0         1  =1 if female
+married    526      2   .608365          0         1  =1 if married
+numdep     526      7  1.043726          0         6  number of dependents
+smsa       526      2  .7224335          0         1  =1 if live in SMSA
+northcen   526      2  .2509506          0         1  =1 if live in north central U.S
+south      526      2  .3555133          0         1  =1 if live in southern region
+west       526      2  .1692015          0         1  =1 if live in western region
+construc   526      2  .0456274          0         1  =1 if work in construc. indus.
+ndurman    526      2  .1140684          0         1  =1 if in nondur. manuf. indus.
+trcommpu   526      2  .0437262          0         1  =1 if in trans, commun, pub ut
+trade      526      2  .2870722          0         1  =1 if in wholesale or retail
+services   526      2  .1007605          0         1  =1 if in services indus.
+profserv   526      2  .2585551          0         1  =1 if in prof. serv. indus.
+profocc    526      2  .3669202          0         1  =1 if in profess. occupation
+clerocc    526      2  .1673004          0         1  =1 if in clerical occupation
+servocc    526      2  .1406844          0         1  =1 if in service occupation
+lwage      526    241  1.623268  -.6348783  3.218076  log(wage)
+expersq    526     51  473.4354          1      2601  exper^2
+tenursq    526     34  78.15019          0      1936  tenure^2
+---------------------------------------------------------------------------------------------------
+
+.                                                                 // o que nos dá uma ideia se deve
+> mos, ou não,
+.                                 // considerar uma dada variável como contínua ou discreta
+. 
+.         summarize               // - produção de estatísticas descritivas para todas as variáveis
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+        wage |        526    5.896103    3.693086        .53      24.98
+        educ |        526    12.56274    2.769022          0         18
+       exper |        526    17.01711    13.57216          1         51
+      tenure |        526    5.104563    7.224462          0         44
+    nonwhite |        526    .1026616    .3038053          0          1
+-------------+---------------------------------------------------------
+      female |        526    .4790875     .500038          0          1
+     married |        526     .608365    .4885804          0          1
+      numdep |        526    1.043726    1.261891          0          6
+        smsa |        526    .7224335    .4482246          0          1
+    northcen |        526    .2509506    .4339728          0          1
+-------------+---------------------------------------------------------
+       south |        526    .3555133    .4791242          0          1
+        west |        526    .1692015    .3752867          0          1
+    construc |        526    .0456274    .2088743          0          1
+     ndurman |        526    .1140684     .318197          0          1
+    trcommpu |        526    .0437262      .20468          0          1
+-------------+---------------------------------------------------------
+       trade |        526    .2870722    .4528262          0          1
+    services |        526    .1007605    .3012978          0          1
+    profserv |        526    .2585551    .4382574          0          1
+     profocc |        526    .3669202    .4824233          0          1
+     clerocc |        526    .1673004    .3735991          0          1
+-------------+---------------------------------------------------------
+     servocc |        526    .1406844    .3480267          0          1
+       lwage |        526    1.623268    .5315382  -.6348783   3.218076
+     expersq |        526    473.4354    616.0448          1       2601
+     tenursq |        526    78.15019    199.4347          0       1936
+
+.         tab educ, sort          // - aplicar o comando 'tab' apenas a variáveis categóricas
+
+   years of |
+  education |      Freq.     Percent        Cum.
+------------+-----------------------------------
+         12 |        198       37.64       37.64
+         16 |         68       12.93       50.57
+         14 |         53       10.08       60.65
+         13 |         39        7.41       68.06
+         10 |         30        5.70       73.76
+         11 |         29        5.51       79.28
+          8 |         22        4.18       83.46
+         15 |         21        3.99       87.45
+         18 |         19        3.61       91.06
+          9 |         17        3.23       94.30
+         17 |         12        2.28       96.58
+          6 |          6        1.14       97.72
+          7 |          4        0.76       98.48
+          4 |          3        0.57       99.05
+          0 |          2        0.38       99.43
+          2 |          1        0.19       99.62
+          3 |          1        0.19       99.81
+          5 |          1        0.19      100.00
+------------+-----------------------------------
+      Total |        526      100.00
+
+.         sum wage, detail        // - aplicar 'sum' apenas a variáveis contínuas
+
+                   average hourly earnings
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%         1.67            .53
+ 5%         2.75           1.43
+10%         2.92            1.5       Obs                 526
+25%         3.33            1.5       Sum of wgt.         526
+
+50%         4.65                      Mean           5.896103
+                        Largest       Std. dev.      3.693086
+75%         6.88          21.86
+90%           10           22.2       Variance       13.63888
+95%           13          22.86       Skewness       2.007325
+99%           20          24.98       Kurtosis       7.970083
+
+. 
+.         tabstat wage,by(smsa) stat(mean sd p50 p90 p95)        // - tabulação de estatísticas des
+> critivas
+
+Summary for variables: wage
+Group variable: smsa (=1 if live in SMSA)
+
+    smsa |      Mean        SD       p50       p90       p95
+---------+--------------------------------------------------
+       0 |   4.83726  2.836892     3.785      8.63        10
+       1 |  6.302921  3.900775         5      11.4    13.515
+---------+--------------------------------------------------
+   Total |  5.896103  3.693086      4.65        10        13
+------------------------------------------------------------
+
+.                         logout, save(tabstat_smsa) excel word replace: tabstat wage,by(smsa) stat
+> (mean sd p50 p90 p95)
+
+---------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/miguelportela/Documents/GitHub/econometrics_notebook/stata/econometria.ii.assig
+> ment.txt
+  log type:  text
+ opened on:  11 Jul 2021, 15:49:21
+
+.                                                                                                  
+>                        // o comando 'logout' fecha o log aberto acima
+.         
+.         // # 1.2 exportar a estatística descritiva para o documento word/latex do trabalho
+. 
+.     // # 1.2.a exportar a estatística descritiva de um sub-conjunto de variáveis para uma tabela
+. 
+.                 estpost summarize wage educ exper female nonwhite married numdep, detail
+
+             |  e(count)   e(sum_w)    e(mean)     e(Var)      e(sd)  e(skewn~)  e(kurto~) 
+-------------+-----------------------------------------------------------------------------
+        wage |       526        526   5.896103   13.63888   3.693086   2.007325   7.970083 
+        educ |       526        526   12.56274   7.667485   2.769022  -.6195741   4.884245 
+       exper |       526        526   17.01711   184.2035   13.57216   .7068652   2.357318 
+      female |       526        526   .4790875    .250038    .500038   .0837235    1.00701 
+    nonwhite |       526        526   .1026616   .0922977   .3038053   2.618234   7.855148 
+     married |       526        526    .608365   .2387108   .4885804  -.4440136   1.197148 
+      numdep |       526        526   1.043726    1.59237   1.261891    1.16449   3.902175 
+
+             |    e(sum)     e(min)     e(max)      e(p1)      e(p5)     e(p10)     e(p25) 
+-------------+-----------------------------------------------------------------------------
+        wage |   3101.35        .53      24.98       1.67       2.75       2.92       3.33 
+        educ |      6608          0         18          4          8          9         12 
+       exper |      8951          1         51          1          1          2          5 
+      female |       252          0          1          0          0          0          0 
+    nonwhite |        54          0          1          0          0          0          0 
+     married |       320          0          1          0          0          0          0 
+      numdep |       549          0          6          0          0          0          0 
+
+             |    e(p50)     e(p75)     e(p90)     e(p95)     e(p99) 
+-------------+-------------------------------------------------------
+        wage |      4.65       6.88         10         13         20 
+        educ |        12         14         16         17         18 
+       exper |      13.5         26         38         43         49 
+      female |         0          1          1          1          1 
+    nonwhite |         0          0          1          1          1 
+     married |         1          1          1          1          1 
+      numdep |         1          2          3          3          5 
+
+.                 
+.                 esttab using summary_statistics.rtf, replace ///
+>                         cells("count mean sd min max p95") nonumbers noobs label ///
+>                         nomtitles nonotes addnotes("Fonte: cálculos próprios.")
+(output written to summary_statistics.rtf)
+
+. 
+.                 // NOTA 1: não reportar o desvio-padrão para variáveis categóricas
+.                 // NOTA 2: para a estatística descritiva as variáveis categóricas devem ser trans
+> formadas 
+.                                 // num conjunto de variáveis dummy
+.         
+.         // # 1.2.b forma alternativa de exportar a estística descritiva
+. 
+.         // - o comando 'outreg2' exporta a estatística descritiva para um ficheiro word
+.         // - da 1ª vez que usam o comando devem instalá-lo: ssc install outreg2
+.         // - verificar na pasta de trabalho o ficheiro 'estatistica_descritiva.doc'
+. 
+.                 preserve
+
+.                     keep wage educ exper female nonwhite married numdep
+
+.                     order wage educ exper female nonwhite married numdep
+
+.                     outreg2 using estatistica_descritiva.doc, sum(detail) word eqkeep(N mean sd p
+> 10 p50 p99) replace
+
+                   average hourly earnings
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%         1.67            .53
+ 5%         2.75           1.43
+10%         2.92            1.5       Obs                 526
+25%         3.33            1.5       Sum of wgt.         526
+
+50%         4.65                      Mean           5.896103
+                        Largest       Std. dev.      3.693086
+75%         6.88          21.86
+90%           10           22.2       Variance       13.63888
+95%           13          22.86       Skewness       2.007325
+99%           20          24.98       Kurtosis       7.970083
+
+                     years of education
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            4              0
+ 5%            8              0
+10%            9              2       Obs                 526
+25%           12              3       Sum of wgt.         526
+
+50%           12                      Mean           12.56274
+                        Largest       Std. dev.      2.769022
+75%           14             18
+90%           16             18       Variance       7.667485
+95%           17             18       Skewness      -.6195741
+99%           18             18       Kurtosis       4.884245
+
+                 years potential experience
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            1              1
+ 5%            1              1
+10%            2              1       Obs                 526
+25%            5              1       Sum of wgt.         526
+
+50%         13.5                      Mean           17.01711
+                        Largest       Std. dev.      13.57216
+75%           26             49
+90%           38             49       Variance       184.2035
+95%           43             50       Skewness       .7068652
+99%           49             51       Kurtosis       2.357318
+
+                        =1 if female
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs                 526
+25%            0              0       Sum of wgt.         526
+
+50%            0                      Mean           .4790875
+                        Largest       Std. dev.       .500038
+75%            1              1
+90%            1              1       Variance        .250038
+95%            1              1       Skewness       .0837235
+99%            1              1       Kurtosis        1.00701
+
+                       =1 if nonwhite
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs                 526
+25%            0              0       Sum of wgt.         526
+
+50%            0                      Mean           .1026616
+                        Largest       Std. dev.      .3038053
+75%            0              1
+90%            1              1       Variance       .0922977
+95%            1              1       Skewness       2.618234
+99%            1              1       Kurtosis       7.855148
+
+                        =1 if married
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs                 526
+25%            0              0       Sum of wgt.         526
+
+50%            1                      Mean            .608365
+                        Largest       Std. dev.      .4885804
+75%            1              1
+90%            1              1       Variance       .2387108
+95%            1              1       Skewness      -.4440136
+99%            1              1       Kurtosis       1.197148
+
+                    number of dependents
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs                 526
+25%            0              0       Sum of wgt.         526
+
+50%            1                      Mean           1.043726
+                        Largest       Std. dev.      1.261891
+75%            2              5
+90%            3              5       Variance        1.59237
+95%            3              6       Skewness        1.16449
+99%            5              6       Kurtosis       3.902175
+
+
+estatistica_descritiva.doc
+dir : seeout
+
+.                 restore
+
+. 
+.         // # 1.2.c exportar gráficos: exemplos; adaptar a cada base de dados em função das variáv
+> eis disponíveis
+. 
+.         // ==> não é necessário aplicar todos os pontos abaixo ao vosso trabalho
+.         // ==> são exemplos do que podem fazer
+. 
+.         histogram wage, bin(15)
+(bin=15, start=.52999997, width=1.63)
+
+. 
+.         kdensity wage, normal
+
+.             graph export wage_density.png, replace
+file /Users/miguelportela/Documents/GitHub/econometrics_notebook/stata/wage_density.png saved as
+    PNG format
+
+. 
+.         histogram female, discrete width(0.5) start(0) frequency
+(start=0, width=.5)
+
+.             graph export female_histogram.png, replace
+file /Users/miguelportela/Documents/GitHub/econometrics_notebook/stata/female_histogram.png saved
+    as PNG format
+
+. 
+.         histogram female, discrete width(0.5) start(0) frequency by(married)
+
+.             graph export female_histogram_married.png, replace
+file
+    /Users/miguelportela/Documents/GitHub/econometrics_notebook/stata/female_histogram_married.pn
+    > g saved as PNG format
+
+. 
+.         egen mean_wage = mean(wage),by(educ)
+
+.         
+.                 scatter mean_wage educ
+
+.                 
+.             graph export wage_educ_scatter.png, replace                         // export the gra
+> ph to an image file
+file /Users/miguelportela/Documents/GitHub/econometrics_notebook/stata/wage_educ_scatter.png
+    saved as PNG format
+
+. 
+.         twoway (scatter mean_wage educ) || (fpfit wage educ)            // versão simples do gráf
+> ico
+
+.                 
+.                 // o mesmo gráfico com a inclusão de uma série de opções
+.                 
+.                         twoway (scatter mean_wage educ) || (fpfit wage educ), graphregion(color(w
+> hite)) ///
+>                                 legend(label(1 "Mean wage") label(2 "Predicted wage") ///
+>                                 region(color(white))) scheme(sj) xtitle("Years of education") yti
+> tle("Wage")
+
+. 
+.                                 graph export wage_educ_fit.png, replace
+file /Users/miguelportela/Documents/GitHub/econometrics_notebook/stata/wage_educ_fit.png saved as
+    PNG format
+
+. 
+.         // forma alternativa de preparar os dados para o gráfico
+. 
+.             preserve
+
+.                 collapse (mean) mean_wage = lwage,by(educ)
+
+.                 twoway (scatter mean_wage educ)
+
+.             restore
+
+.                 
+.                 label var educ "Years of education"
+
+.                 
+.                 graph bar (mean) female, over(educ, label(angle(-45) labsize(vsmall))) ///
+>                          graphregion(color(white)) scheme(s2color) ytitle("Share of females (x 10
+> 0)")
+
+. 
+.     // # 1.4 forma alternativa de fazer uma 1ª caracterização da relação entre salário e educação
+. 
+.         tab edu, missing
+
+   Years of |
+  education |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |          2        0.38        0.38
+          2 |          1        0.19        0.57
+          3 |          1        0.19        0.76
+          4 |          3        0.57        1.33
+          5 |          1        0.19        1.52
+          6 |          6        1.14        2.66
+          7 |          4        0.76        3.42
+          8 |         22        4.18        7.60
+          9 |         17        3.23       10.84
+         10 |         30        5.70       16.54
+         11 |         29        5.51       22.05
+         12 |        198       37.64       59.70
+         13 |         39        7.41       67.11
+         14 |         53       10.08       77.19
+         15 |         21        3.99       81.18
+         16 |         68       12.93       94.11
+         17 |         12        2.28       96.39
+         18 |         19        3.61      100.00
+------------+-----------------------------------
+      Total |        526      100.00
+
+.             gen high_educ = (educ >12)
+
+. 
+.         tab high_educ
+
+  high_educ |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |        314       59.70       59.70
+          1 |        212       40.30      100.00
+------------+-----------------------------------
+      Total |        526      100.00
+
+.         label define heduc 0 "Low educ" 1 "High educ", replace
+
+.         label values high_educ heduc
+
+.         label variable high_educ "Level of education; 1 high, 0 otherwise"
+
+.             des high_educ
+
+Variable      Storage   Display    Value
+    name         type    format    label      Variable label
+---------------------------------------------------------------------------------------------------
+high_educ       float   %9.0g      heduc      Level of education; 1 high, 0 otherwise
+
+.             tab high_educ
+
+   Level of |
+ education; |
+  1 high, 0 |
+  otherwise |      Freq.     Percent        Cum.
+------------+-----------------------------------
+   Low educ |        314       59.70       59.70
+  High educ |        212       40.30      100.00
+------------+-----------------------------------
+      Total |        526      100.00
+
+. 
+.         sum wage, detail
+
+                   average hourly earnings
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%         1.67            .53
+ 5%         2.75           1.43
+10%         2.92            1.5       Obs                 526
+25%         3.33            1.5       Sum of wgt.         526
+
+50%         4.65                      Mean           5.896103
+                        Largest       Std. dev.      3.693086
+75%         6.88          21.86
+90%           10           22.2       Variance       13.63888
+95%           13          22.86       Skewness       2.007325
+99%           20          24.98       Kurtosis       7.970083
+
+.             return list
+
+scalars:
+                  r(N) =  526
+              r(sum_w) =  526
+               r(mean) =  5.896102674787035
+                r(Var) =  13.63888436377501
+                 r(sd) =  3.693086021713413
+           r(skewness) =  2.007325040142161
+           r(kurtosis) =  7.970082831531257
+                r(sum) =  3101.350006937981
+                r(min) =  .5299999713897705
+                r(max) =  24.97999954223633
+                 r(p1) =  1.669999957084656
+                 r(p5) =  2.75
+                r(p10) =  2.920000076293945
+                r(p25) =  3.329999923706055
+                r(p50) =  4.650000095367432
+                r(p75) =  6.880000114440918
+                r(p90) =  10
+                r(p95) =  13
+                r(p99) =  20
+
+.             scalar p99 = r(p99)
+
+. 
+.             correlate wage educ
+(obs=526)
+
+             |     wage     educ
+-------------+------------------
+        wage |   1.0000
+        educ |   0.4059   1.0000
+
+
+. 
+.         tabstat wage,by(high_educ) stat(N mean sd p10 p50 p90 p99)
+
+Summary for variables: wage
+Group variable: high_educ (Level of education; 1 high, 0 otherwise)
+
+high_educ |         N      Mean        SD       p10       p50       p90       p99
+----------+----------------------------------------------------------------------
+ Low educ |       314  4.885701  2.806815       2.9         4      8.48        15
+High educ |       212  7.392642  4.298774       3.3      6.25      12.5     21.63
+----------+----------------------------------------------------------------------
+    Total |       526  5.896103  3.693086      2.92      4.65        10        20
+---------------------------------------------------------------------------------
+
+. 
+.         twoway (kdensity wage if high_educ == 0 & wage <= p99) || (kdensity wage if high_educ == 
+> 1 & wage <= p99) ///
+>                         , graphregion(color(white)) ///
+>             legend(label(1 "Low education") label(2 "High education") ///
+>             region(color(white))) scheme(sj) xtitle("Wage") ytitle("Density")
+
+.                         
+.                         graph export wage_density_educ.png, replace
+file /Users/miguelportela/Documents/GitHub/econometrics_notebook/stata/wage_density_educ.png
+    saved as PNG format
+
+. 
+. 
+. 
+. // # 2. análise de regressão; exemplos de modelo
+. 
+.     generate exper2 = exper^2            // gerar uma variável 'exper2' que é o quadrado da exper
+> iência
+
+. 
+.     // # 2.1
+.                 
+.                 // -- >> REGRESSION 1: column 1 of the estimates table
+.                 
+.         regress lwage educ exper exper2     // discutir a formulação do modelo e a interpretação 
+> dos parâmetros
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(3, 522)       =     74.67
+       Model |  44.5393713         3  14.8464571   Prob > F        =    0.0000
+    Residual |   103.79038       522  .198832146   R-squared       =    0.3003
+-------------+----------------------------------   Adj R-squared   =    0.2963
+       Total |  148.329751       525   .28253286   Root MSE        =    .44591
+
+------------------------------------------------------------------------------
+       lwage | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        educ |   .0903658    .007468    12.10   0.000     .0756948    .1050368
+       exper |   .0410089   .0051965     7.89   0.000     .0308002    .0512175
+      exper2 |  -.0007136   .0001158    -6.16   0.000     -.000941   -.0004861
+       _cons |   .1279975   .1059323     1.21   0.227    -.0801085    .3361035
+------------------------------------------------------------------------------
+
+.             
+.                         estimates store ols1            // guardar os resultados da regressão num
+>  "caixa" designada 'ols1'
+
+. 
+.                 test exper2                 // teste de significância individual
+
+ ( 1)  exper2 = 0
+
+       F(  1,   522) =   37.99
+            Prob > F =    0.0000
+
+.                                             // teste de hipóteses: H0: beta3 = 0
+. 
+.                 test exper exper2           // teste de significância conjunta à variável experiê
+> ncia,
+
+ ( 1)  exper = 0
+ ( 2)  exper2 = 0
+
+       F(  2,   522) =   42.70
+            Prob > F =    0.0000
+
+.                                             // que entra no modelo como 'exper' e 'exper2'
+. 
+.         // para que este teste de significância conjunta possa ser implementado manualmente é nec
+> essário ter informação
+.         // da estimação de um modelo sem exper e exper2
+. 
+.                 regress lwage educ
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(1, 524)       =    119.58
+       Model |  27.5606288         1  27.5606288   Prob > F        =    0.0000
+    Residual |  120.769123       524  .230475425   R-squared       =    0.1858
+-------------+----------------------------------   Adj R-squared   =    0.1843
+       Total |  148.329751       525   .28253286   Root MSE        =    .48008
+
+------------------------------------------------------------------------------
+       lwage | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        educ |   .0827444   .0075667    10.94   0.000     .0678796    .0976091
+       _cons |   .5837727   .0973358     6.00   0.000     .3925563    .7749891
+------------------------------------------------------------------------------
+
+.                                         
+.                                         est store ols0
+
+.                 
+.                                 // formulação manual do teste
+. 
+.                     di ((0.3003 - 0.1858)/2)/((1 - 0.3003)/(526 - 3 - 1))
+42.710447
+
+. 
+.         regress lwage educ c.exper##c.exper // o modelo acima poderia ter sido estimado sem criar
+>  a variável 'exper2'
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(3, 522)       =     74.67
+       Model |  44.5393713         3  14.8464571   Prob > F        =    0.0000
+    Residual |   103.79038       522  .198832146   R-squared       =    0.3003
+-------------+----------------------------------   Adj R-squared   =    0.2963
+       Total |  148.329751       525   .28253286   Root MSE        =    .44591
+
+---------------------------------------------------------------------------------
+          lwage | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+----------------+----------------------------------------------------------------
+           educ |   .0903658    .007468    12.10   0.000     .0756948    .1050368
+          exper |   .0410089   .0051965     7.89   0.000     .0308002    .0512175
+                |
+c.exper#c.exper |  -.0007136   .0001158    -6.16   0.000     -.000941   -.0004861
+                |
+          _cons |   .1279975   .1059323     1.21   0.227    -.0801085    .3361035
+---------------------------------------------------------------------------------
+
+.                                             // utilizando os operadores do tipo '#' do Stata
+.                                             // esta formulação equivale a inserir na regressão 'e
+> xper' e 'exper2'
+. 
+.     // # 2.2
+.                 
+.                 // - tendo em conta o debate feito na literatura teórica e empírica definir um 2º
+>  conjunto
+.                 // de variáveis a incluir na regressão
+. 
+.                 // -- >> REGRESSION 2: column 2 of the estimates table
+.                 
+.         regress lwage educ exper exper2 married nonwhite
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(5, 520)       =     46.66
+       Model |  45.9374509         5  9.18749019   Prob > F        =    0.0000
+    Residual |    102.3923       520   .19690827   R-squared       =    0.3097
+-------------+----------------------------------   Adj R-squared   =    0.3031
+       Total |  148.329751       525   .28253286   Root MSE        =    .44374
+
+------------------------------------------------------------------------------
+       lwage | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        educ |   .0876572   .0075243    11.65   0.000     .0728755     .102439
+       exper |   .0350769   .0056371     6.22   0.000     .0240026    .0461512
+      exper2 |  -.0006126   .0001214    -5.04   0.000    -.0008511    -.000374
+     married |   .1192311   .0448426     2.66   0.008     .0311362     .207326
+    nonwhite |   .0006491   .0641647     0.01   0.992    -.1254047    .1267029
+       _cons |   .1425482   .1064697     1.34   0.181    -.0666154    .3517118
+------------------------------------------------------------------------------
+
+.             est store ols2
+
+. 
+.             test married nonwhite   // teste de significância conjunta
+
+ ( 1)  married = 0
+ ( 2)  nonwhite = 0
+
+       F(  2,   520) =    3.55
+            Prob > F =    0.0294
+
+.                                     // H0: beta4 = beta5 = 0
+. 
+.     // # 2.3 teste de Chow: avaliar se existe uma quebra de estrutura entre homens e mulheres na 
+> formação dos salários
+. 
+.         // # 2.3.a versão "longa"; ajuda a perceber o funcionamento do teste ==> não usar no trab
+> alho de grupo
+. 
+.             gen female_educ = female*educ
+
+.             gen female_exper = female*exper
+
+.             gen female_exper2 = female*exper2
+
+.             gen female_married = female*married
+
+.             gen female_nonwhite = female*nonwhite
+
+. 
+.         regress lwage educ exper exper2 married nonwhite female female_educ female_exper female_e
+> xper2 female_married female_nonwhite
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(11, 514)      =     36.25
+       Model |  64.7998283        11  5.89089348   Prob > F        =    0.0000
+    Residual |  83.5299231       514  .162509578   R-squared       =    0.4369
+-------------+----------------------------------   Adj R-squared   =    0.4248
+       Total |  148.329751       525   .28253286   Root MSE        =    .40312
+
+---------------------------------------------------------------------------------
+          lwage | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+----------------+----------------------------------------------------------------
+           educ |   .0871718   .0091105     9.57   0.000     .0692734    .1050702
+          exper |   .0451971   .0071557     6.32   0.000     .0311392    .0592551
+         exper2 |  -.0007701   .0001531    -5.03   0.000    -.0010708   -.0004694
+        married |   .1888699   .0603134     3.13   0.002     .0703789    .3073609
+       nonwhite |   .0676958   .0803672     0.84   0.400    -.0901929    .2255845
+         female |   .1179816   .1978415     0.60   0.551    -.2706958     .506659
+    female_educ |  -.0068364   .0140404    -0.49   0.627    -.0344199    .0207472
+   female_exper |  -.0180371   .0103865    -1.74   0.083    -.0384424    .0023681
+  female_exper2 |   .0002555   .0002235     1.14   0.253    -.0001836    .0006946
+ female_married |  -.2595683   .0832712    -3.12   0.002     -.423162   -.0959746
+female_nonwhite |   -.184705   .1188931    -1.55   0.121    -.4182811    .0488711
+          _cons |   .1456999   .1343142     1.08   0.279    -.1181725    .4095723
+---------------------------------------------------------------------------------
+
+. 
+.             test female female_educ female_exper female_exper2 female_married female_nonwhite
+
+ ( 1)  female = 0
+ ( 2)  female_educ = 0
+ ( 3)  female_exper = 0
+ ( 4)  female_exper2 = 0
+ ( 5)  female_married = 0
+ ( 6)  female_nonwhite = 0
+
+       F(  6,   514) =   19.34
+            Prob > F =    0.0000
+
+. 
+.         
+.                 // # 2.3.b versão alternativa; a que é habitualmente aplicada ==> esta é que a de
+> vem usar no trabalho
+. 
+.         regress lwage educ exper exper2 married nonwhite                    // restricted model: 
+> a variável 'female' não é incluída na regressão
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(5, 520)       =     46.66
+       Model |  45.9374509         5  9.18749019   Prob > F        =    0.0000
+    Residual |    102.3923       520   .19690827   R-squared       =    0.3097
+-------------+----------------------------------   Adj R-squared   =    0.3031
+       Total |  148.329751       525   .28253286   Root MSE        =    .44374
+
+------------------------------------------------------------------------------
+       lwage | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        educ |   .0876572   .0075243    11.65   0.000     .0728755     .102439
+       exper |   .0350769   .0056371     6.22   0.000     .0240026    .0461512
+      exper2 |  -.0006126   .0001214    -5.04   0.000    -.0008511    -.000374
+     married |   .1192311   .0448426     2.66   0.008     .0311362     .207326
+    nonwhite |   .0006491   .0641647     0.01   0.992    -.1254047    .1267029
+       _cons |   .1425482   .1064697     1.34   0.181    -.0666154    .3517118
+------------------------------------------------------------------------------
+
+. 
+.                 // -- >> REGRESSION 3: column 3 of the estimates table
+.                 
+.         regress lwage educ exper exper2 married nonwhite if female == 0     // un-restricted (1);
+>  males
+
+      Source |       SS           df       MS      Number of obs   =       274
+-------------+----------------------------------   F(5, 268)       =     38.20
+       Model |  32.4911781         5  6.49823563   Prob > F        =    0.0000
+    Residual |  45.5929658       268  .170123007   R-squared       =    0.4161
+-------------+----------------------------------   Adj R-squared   =    0.4052
+       Total |  78.0841439       273  .286022505   Root MSE        =    .41246
+
+------------------------------------------------------------------------------
+       lwage | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        educ |   .0871718   .0093215     9.35   0.000     .0688191    .1055245
+       exper |   .0451971   .0073214     6.17   0.000     .0307824    .0596119
+      exper2 |  -.0007701   .0001566    -4.92   0.000    -.0010784   -.0004618
+     married |   .1888699     .06171     3.06   0.002     .0673718    .3103679
+    nonwhite |   .0676958   .0822283     0.82   0.411    -.0941997    .2295913
+       _cons |   .1456999   .1374245     1.06   0.290     -.124869    .4162688
+------------------------------------------------------------------------------
+
+.             est store ols3
+
+. 
+.                 // -- >> REGRESSION 4: column 4 of the estimates table
+.                 
+.         regress lwage educ exper exper2 married nonwhite if female == 1     // un-restricted (2);
+>  females
+
+      Source |       SS           df       MS      Number of obs   =       252
+-------------+----------------------------------   F(5, 246)       =     15.04
+       Model |  11.5966498         5  2.31932996   Prob > F        =    0.0000
+    Residual |  37.9369573       246  .154215274   R-squared       =    0.2341
+-------------+----------------------------------   Adj R-squared   =    0.2186
+       Total |  49.5336071       251  .197345048   Root MSE        =     .3927
+
+------------------------------------------------------------------------------
+       lwage | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        educ |   .0803354    .010407     7.72   0.000     .0598373    .1008336
+       exper |     .02716   .0073337     3.70   0.000     .0127151    .0416049
+      exper2 |  -.0005146   .0001587    -3.24   0.001    -.0008271    -.000202
+     married |  -.0706984   .0559298    -1.26   0.207    -.1808608     .039464
+    nonwhite |  -.1170092   .0853514    -1.37   0.172    -.2851219    .0511034
+       _cons |   .2636815   .1415061     1.86   0.064    -.0150366    .5423995
+------------------------------------------------------------------------------
+
+.             est store ols4
+
+. 
+.             // teste F, estatística observada:                 
+.                         // display ((102.3923 - (45.5929658 + 37.9369573))/(6))/((45.5929658 + 37
+> .9369573)/(526 - 2*(5 + 1))) 
+.                         // = 19.344887
+.             
+.                         // F crítico: cálculo via Stata
+.                         // display invFtail(6,526 - 2*(5 + 1),.05)
+.                         // = 2.1159353
+.             
+.                         // comparar com a tabela F para um nível de significância de 5%
+. 
+.                 // p-value: 2.057e-20 ~= 0
+. 
+.             display ((102.3923 - (45.5929658 + 37.9369573))/(6))/((45.5929658 + 37.9369573)/(526 
+> - 2*(5 + 1)))
+19.344887
+
+. 
+. 
+.     // # 2.4 variáveis adicionais
+. 
+.         // criação de uma variável categórica com 3 valores a partir de numdep
+. 
+.         tab numdep, missing            // a opção missing avalia se a variável tem valores omisso
+> s
+
+  number of |
+ dependents |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |        252       47.91       47.91
+          1 |        105       19.96       67.87
+          2 |         99       18.82       86.69
+          3 |         45        8.56       95.25
+          4 |         16        3.04       98.29
+          5 |          7        1.33       99.62
+          6 |          2        0.38      100.00
+------------+-----------------------------------
+      Total |        526      100.00
+
+. 
+.         gen numdep_dummies = 0 if numdep == 0
+(274 missing values generated)
+
+.             replace numdep_dummies = 1 if (numdep == 1 | numdep == 2)
+(204 real changes made)
+
+.             replace numdep_dummies = 2 if (numdep > 2)
+(70 real changes made)
+
+. 
+.             tab numdep_dummies
+
+numdep_dumm |
+        ies |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |        252       47.91       47.91
+          1 |        204       38.78       86.69
+          2 |         70       13.31      100.00
+------------+-----------------------------------
+      Total |        526      100.00
+
+. 
+.                 gen dummy_1 = (numdep == 1 | numdep == 2)
+
+.                 gen dummy_2 = (numdep > 2)
+
+.                                 
+.                                         // atenção: para o Stata o 'missing' (valor omisso) é + i
+> nfinito
+. 
+.         regress lwage educ exper exper2 married nonwhite female i.numdep_dummies
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(8, 517)       =     43.93
+       Model |  60.0244029         8  7.50305036   Prob > F        =    0.0000
+    Residual |  88.3053485       517  .170803382   R-squared       =    0.4047
+-------------+----------------------------------   Adj R-squared   =    0.3955
+       Total |  148.329751       525   .28253286   Root MSE        =    .41328
+
+--------------------------------------------------------------------------------
+         lwage | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+---------------+----------------------------------------------------------------
+          educ |   .0800728   .0073706    10.86   0.000     .0655927    .0945529
+         exper |   .0373601   .0053827     6.94   0.000     .0267855    .0479347
+        exper2 |  -.0006815   .0001185    -5.75   0.000    -.0009143   -.0004487
+       married |   .0766459   .0432162     1.77   0.077     -.008255    .1615467
+      nonwhite |  -.0084906   .0599608    -0.14   0.887    -.1262875    .1093062
+        female |    -.32417   .0371179    -8.73   0.000    -.3970905   -.2512495
+               |
+numdep_dummies |
+            1  |  -.0545766    .042439    -1.29   0.199    -.1379508    .0287976
+            2  |  -.0638176   .0609224    -1.05   0.295    -.1835035    .0558684
+               |
+         _cons |   .4434405   .1094174     4.05   0.000     .2284831     .658398
+--------------------------------------------------------------------------------
+
+. 
+.             testparm i.numdep_dummies   // teste de significância conjunta para as duas dummies a
+> dicionais
+
+ ( 1)  1.numdep_dummies = 0
+ ( 2)  2.numdep_dummies = 0
+
+       F(  2,   517) =    1.00
+            Prob > F =    0.3689
+
+.                                         // H0: beta6 = beta7 = 0
+. 
+.                 regress lwage educ exper exper2 married nonwhite female dummy_1 dummy_2
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(8, 517)       =     43.93
+       Model |  60.0244029         8  7.50305036   Prob > F        =    0.0000
+    Residual |  88.3053485       517  .170803382   R-squared       =    0.4047
+-------------+----------------------------------   Adj R-squared   =    0.3955
+       Total |  148.329751       525   .28253286   Root MSE        =    .41328
+
+------------------------------------------------------------------------------
+       lwage | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        educ |   .0800728   .0073706    10.86   0.000     .0655927    .0945529
+       exper |   .0373601   .0053827     6.94   0.000     .0267855    .0479347
+      exper2 |  -.0006815   .0001185    -5.75   0.000    -.0009143   -.0004487
+     married |   .0766459   .0432162     1.77   0.077     -.008255    .1615467
+    nonwhite |  -.0084906   .0599608    -0.14   0.887    -.1262875    .1093062
+      female |    -.32417   .0371179    -8.73   0.000    -.3970905   -.2512495
+     dummy_1 |  -.0545766    .042439    -1.29   0.199    -.1379508    .0287976
+     dummy_2 |  -.0638176   .0609224    -1.05   0.295    -.1835035    .0558684
+       _cons |   .4434405   .1094174     4.05   0.000     .2284831     .658398
+------------------------------------------------------------------------------
+
+. 
+.                     test dummy_1 dummy_2
+
+ ( 1)  dummy_1 = 0
+ ( 2)  dummy_2 = 0
+
+       F(  2,   517) =    1.00
+            Prob > F =    0.3689
+
+. 
+.             matrix list e(V)                // listar a matriz de variâcias e co-variâncias
+
+symmetric e(V)[9,9]
+                educ       exper      exper2     married    nonwhite      female     dummy_1
+    educ   .00005433
+   exper  -3.201e-06   .00002897
+  exper2   1.675e-07  -6.111e-07   1.404e-08
+ married  -.00004924  -.00007846   1.208e-06   .00186764
+nonwhite   .00002706  -.00001194   2.079e-07   .00022584    .0035953
+  female   .00001876  -9.458e-07   1.411e-09   .00026655   .00008415   .00137774
+ dummy_1   .00004944   -.0000341   1.144e-06  -.00037948  -.00019254    -.000213   .00180107
+ dummy_2   .00013352  -.00006802   1.927e-06   -.0003433  -.00014863   4.883e-06   .00102164
+   _cons  -.00072608  -.00009184   1.883e-07   .00028778  -.00068763   -.0009692  -.00106439
+
+             dummy_2       _cons
+ dummy_2   .00371154
+   _cons  -.00210044   .01197218
+
+.                                             
+.                                                                                         // é nece
+> ssário para obter a covariância que é
+.                                             // utilizada no teste de igualdade de parâmetros
+. 
+.             test nonwhite = female      // teste de igualdade de parâmetros
+
+ ( 1)  nonwhite - female = 0
+
+       F(  1,   517) =   20.74
+            Prob > F =    0.0000
+
+.                                                                                 // H0: beta5 = be
+> ta6
+. 
+.             // cálculo da estatística do teste
+.                         
+.                                 display (-.0084906-(-.32417))/((.0599608^2+.0371179^2 - 2*(.00008
+> 415))^.5)
+4.5541935
+
+. 
+.                     // comparar com a aplicação automática do stata: test nonwhite = female
+. 
+.     // # 2.5 interacção de variáveis
+. 
+.         // gen female_educ = female*educ    ==>> a variável já existe
+. 
+.                 // -- >> REGRESSION 5: column 5 of the estimates table
+.                 
+.         regress lwage educ exper exper2 married nonwhite female dummy_1 dummy_2 female_educ
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(9, 516)       =     38.97
+       Model |  60.0269659         9  6.66966287   Prob > F        =    0.0000
+    Residual |  88.3027855       516  .171129429   R-squared       =    0.4047
+-------------+----------------------------------   Adj R-squared   =    0.3943
+       Total |  148.329751       525   .28253286   Root MSE        =    .41368
+
+------------------------------------------------------------------------------
+       lwage | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        educ |   .0807228   .0090908     8.88   0.000     .0628633    .0985824
+       exper |   .0373474   .0053888     6.93   0.000     .0267607    .0479341
+      exper2 |  -.0006811   .0001187    -5.74   0.000    -.0009143    -.000448
+     married |   .0767789    .043271     1.77   0.077    -.0082302     .161788
+    nonwhite |  -.0079653   .0601714    -0.13   0.895    -.1261763    .1102457
+      female |  -.3033839   .1738645    -1.74   0.082    -.6449532    .0381854
+     dummy_1 |  -.0549544   .0425916    -1.29   0.198    -.1386286    .0287198
+     dummy_2 |  -.0639049   .0609847    -1.05   0.295    -.1837138     .055904
+ female_educ |  -.0016574   .0135433    -0.12   0.903    -.0282642    .0249494
+       _cons |   .4351567   .1287511     3.38   0.001     .1822159    .6880976
+------------------------------------------------------------------------------
+
+.             est store ols5
+
+. 
+.                 test female_educ        // avaliar se faz sentido incluir a variável 'interacção'
+>  no modelo
+
+ ( 1)  female_educ = 0
+
+       F(  1,   516) =    0.01
+            Prob > F =    0.9026
+
+.                                         // interacção = female_educ = female*educ
+. 
+.             // teste de significância global
+. 
+.                 test educ exper exper2 married nonwhite female dummy_1 dummy_2 female_educ
+
+ ( 1)  educ = 0
+ ( 2)  exper = 0
+ ( 3)  exper2 = 0
+ ( 4)  married = 0
+ ( 5)  nonwhite = 0
+ ( 6)  female = 0
+ ( 7)  dummy_1 = 0
+ ( 8)  dummy_2 = 0
+ ( 9)  female_educ = 0
+
+       F(  9,   516) =   38.97
+            Prob > F =    0.0000
+
+. 
+.                             // H0: beta1=beta2=beta3=beta4=(...)=beta9=0
+.                             // comparar com o output do canto superior direito do Stata
+. 
+.                             // a seguir à regressão
+. 
+.         regress lwage c.educ##i.female exper exper2 nonwhite i.numdep_dummies
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(8, 517)       =     43.27
+       Model |  59.4881828         8  7.43602285   Prob > F        =    0.0000
+    Residual |  88.8415686       517  .171840558   R-squared       =    0.4011
+-------------+----------------------------------   Adj R-squared   =    0.3918
+       Total |  148.329751       525   .28253286   Root MSE        =    .41454
+
+--------------------------------------------------------------------------------
+         lwage | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+---------------+----------------------------------------------------------------
+          educ |   .0825092   .0090537     9.11   0.000     .0647227    .1002956
+      1.female |  -.3219068    .173911    -1.85   0.065    -.6635659    .0197524
+               |
+ female#c.educ |
+            1  |  -.0010537   .0135671    -0.08   0.938    -.0277071    .0255998
+               |
+         exper |   .0405754    .005083     7.98   0.000     .0305896    .0505612
+        exper2 |  -.0007309   .0001155    -6.33   0.000    -.0009579   -.0005039
+      nonwhite |  -.0174351   .0600586    -0.29   0.772    -.1354241    .1005539
+               |
+numdep_dummies |
+            1  |  -.0392261   .0417454    -0.94   0.348    -.1212376    .0427854
+            2  |  -.0497688   .0605876    -0.82   0.412    -.1687969    .0692594
+               |
+         _cons |   .4263512   .1289225     3.31   0.001     .1730748    .6796276
+--------------------------------------------------------------------------------
+
+.             
+.                         // o modelo acima poderia ter sido estimado sem criar a variável 'exper2'
+.             // utilizar operadores Stata, #
+. 
+. 
+. 
+. // # 3. HETEROSKEDASTICITY (para efeitos de ilustração vamos utilizar um modelo mais simples)
+. 
+.         regress lwage educ exper female
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(3, 522)       =     94.75
+       Model |  52.2939096         3  17.4313032   Prob > F        =    0.0000
+    Residual |  96.0358418       522  .183976708   R-squared       =    0.3526
+-------------+----------------------------------   Adj R-squared   =    0.3488
+       Total |  148.329751       525   .28253286   Root MSE        =    .42893
+
+------------------------------------------------------------------------------
+       lwage | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        educ |   .0912897   .0071232    12.82   0.000     .0772962    .1052833
+       exper |   .0094139   .0014493     6.50   0.000     .0065667     .012261
+      female |  -.3435967   .0376668    -9.12   0.000    -.4175939   -.2695996
+       _cons |   .4808357   .1050163     4.58   0.000     .2745292    .6871421
+------------------------------------------------------------------------------
+
+. 
+.             predict e, resid    // previsão dos resíduos
+
+.             predict y_hat       // variável dependente prevista
+(option xb assumed; fitted values)
+
+. 
+.             gen e2 = e^2        // gerar uma variável 'e2' que contém o quadrado dos resíduos
+
+. 
+.     // # 3.1 exploração gráfica
+. 
+.                 scatter e educ
+
+.                 scatter e exper
+
+. 
+.             // comando automático
+. 
+.                                 regress lwage educ exper female
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(3, 522)       =     94.75
+       Model |  52.2939096         3  17.4313032   Prob > F        =    0.0000
+    Residual |  96.0358418       522  .183976708   R-squared       =    0.3526
+-------------+----------------------------------   Adj R-squared   =    0.3488
+       Total |  148.329751       525   .28253286   Root MSE        =    .42893
+
+------------------------------------------------------------------------------
+       lwage | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        educ |   .0912897   .0071232    12.82   0.000     .0772962    .1052833
+       exper |   .0094139   .0014493     6.50   0.000     .0065667     .012261
+      female |  -.3435967   .0376668    -9.12   0.000    -.4175939   -.2695996
+       _cons |   .4808357   .1050163     4.58   0.000     .2745292    .6871421
+------------------------------------------------------------------------------
+
+.                                                 rvpplot educ
+
+.                                                 rvpplot exper
+
+. 
+.             // solução 'manual'
+. 
+.                 // num modelo que satisfaça os pressupostos clássicos em relação à variância
+.                 // não deve existir um padrão na relação entre os resíduos e a variável
+.                 // dependente prevista, y_hat
+. 
+.                 scatter e y_hat
+
+. 
+.                 rvfplot // comando automático para avaliar se a variância dos resíduos é constant
+> e
+
+. 
+.                     twoway (scatter e y_hat) || (lfit e y_hat) || (fpfit e y_hat)
+
+. 
+.     // # 3.2 TESTE DE BREUSH-PAGAN
+.                         
+.                         // manual, step-by-step
+. 
+.                                 reg e2 educ exper female
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(3, 522)       =      1.65
+       Model |   .43963291         3  .146544303   Prob > F        =    0.1770
+    Residual |  46.3790963       522  .088848844   R-squared       =    0.0094
+-------------+----------------------------------   Adj R-squared   =    0.0037
+       Total |  46.8187292       525  .089178532   Root MSE        =    .29808
+
+------------------------------------------------------------------------------
+          e2 | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        educ |   .0059462   .0049501     1.20   0.230    -.0037784    .0156708
+       exper |   .0014475   .0010072     1.44   0.151    -.0005311    .0034261
+      female |  -.0344996    .026176    -1.32   0.188    -.0859228    .0169237
+       _cons |    .099773   .0729795     1.37   0.172    -.0435967    .2431426
+------------------------------------------------------------------------------
+
+.                     scalar N=e(N)
+
+.                     scalar R2=e(r2)
+
+.                     scalar nregressores=e(df_m)
+
+.                                         di _new(2) "Estatística do teste:    " %5.2f N*R2 "    P-
+> valor:    " %5.4f chi2tail(nregressores,N*R2)
+
+
+Estatística do teste:     4.94    P-valor:    0.1763
+
+.                                 
+.                     di invchi2(3,.95)   // show the qui-square critical value
+7.8147279
+
+. 
+.                         // PROCEDIMENTO AUTOMÁTICO DO STATA
+. 
+.                                 quietly regress lwage educ exper female         // the command 'q
+> uietly' asks Stata not to show the output
+
+.                                                 estat hettest,rhs iid
+
+Breusch–Pagan/Cook–Weisberg test for heteroskedasticity 
+Assumption: i.i.d. error terms
+Variables: All independent variables
+
+H0: Constant variance
+
+    chi2(3) =   4.94
+Prob > chi2 = 0.1763
+
+. 
+.     // # 3.3 TESTE DE WHITE
+.         
+.                         // solução 1, manual (step-by-step)
+. 
+.             // gerar os quadrados das variáveis
+. 
+.                 // já temos exper2 e female = female^2
+.                 
+.                                         gen educ2 = educ^2
+
+.                                 
+.                                 // e os produtos cruzados
+.                                 
+.                                         gen educ_exper=educ*exper
+
+.                                         gen educ_female=educ*female
+
+.                                         gen exper_female=exper*female
+
+. 
+.                 reg e2 educ exper female educ2 exper2 educ_exper educ_female exper_female
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(8, 517)       =      2.16
+       Model |  1.51563976         8   .18945497   Prob > F        =    0.0290
+    Residual |  45.3030895       517  .087626865   R-squared       =    0.0324
+-------------+----------------------------------   Adj R-squared   =    0.0174
+       Total |  46.8187292       525  .089178532   Root MSE        =    .29602
+
+------------------------------------------------------------------------------
+          e2 | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        educ |   -.104846   .0357239    -2.93   0.003    -.1750279   -.0346642
+       exper |  -.0108735   .0074387    -1.46   0.144    -.0254872    .0037402
+      female |  -.1337566   .1483302    -0.90   0.368    -.4251607    .1576475
+       educ2 |   .0035414   .0011815     3.00   0.003     .0012203    .0058626
+      exper2 |   -.000026   .0000824    -0.32   0.753    -.0001879    .0001359
+  educ_exper |    .001148    .000432     2.66   0.008     .0002992    .0019967
+ educ_female |   .0095633   .0105364     0.91   0.364    -.0111361    .0302626
+exper_female |  -.0009859   .0020188    -0.49   0.626     -.004952    .0029803
+       _cons |    .893936   .2793189     3.20   0.001     .3451964    1.442676
+------------------------------------------------------------------------------
+
+. 
+.                         scalar N=e(N)
+
+.                         scalar R2=e(r2)
+
+.                         scalar k=e(df_m)
+
+.                                 
+.                                 di _new(2) "Estatística do teste:    " %5.2f N*R2 "    P-valor:  
+>   " %5.4f chi2tail(k,N*R2)
+
+
+Estatística do teste:    17.03    P-valor:    0.0298
+
+. 
+.                         // solução 2, procedimento automático do Stata
+. 
+.                                 quietly regress lwage educ exper female         // the command 'q
+> uietly' asks Stata not to show the output
+
+.                                         estat imtest, white
+
+White's test
+H0: Homoskedasticity
+Ha: Unrestricted heteroskedasticity
+
+    chi2(8) =  17.03
+Prob > chi2 = 0.0298
+
+Cameron & Trivedi's decomposition of IM-test
+
+--------------------------------------------------
+              Source |       chi2     df         p
+---------------------+----------------------------
+  Heteroskedasticity |      17.03      8    0.0298
+            Skewness |       1.06      3    0.7868
+            Kurtosis |       1.54      1    0.2150
+---------------------+----------------------------
+               Total |      19.63     12    0.0745
+--------------------------------------------------
+
+. 
+.         // PROCEDIMENTO ALTERNATIVO: UTILIZAR O VALOR PREVISTO DA VARIÁVEL DEPENDENTE 
+.                 // E O SEU QUADRADO COMO VARIÁVEIS EXPLICATIVAS DE e^2
+. 
+.                 gen y_hat2=y_hat^2
+
+. 
+.                                         reg e2 y_hat y_hat2
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(2, 523)       =      4.28
+       Model |  .754211085         2  .377105542   Prob > F        =    0.0143
+    Residual |  46.0645181       523  .088077473   R-squared       =    0.0161
+-------------+----------------------------------   Adj R-squared   =    0.0123
+       Total |  46.8187292       525  .089178532   Root MSE        =    .29678
+
+------------------------------------------------------------------------------
+          e2 | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       y_hat |  -.5304258   .2964568    -1.79   0.074    -1.112818    .0519666
+      y_hat2 |   .1904855   .0910306     2.09   0.037     .0116549    .3693161
+       _cons |   .5227342   .2375785     2.20   0.028     .0560088    .9894596
+------------------------------------------------------------------------------
+
+. 
+.                         scalar N=e(N)
+
+.                         scalar R2=e(r2)
+
+.                         scalar k=e(df_m)
+
+.                                 
+.                                 di _new(2) "Estatística do teste:    " %5.2f N*R2 "    P-valor:  
+>   " %5.4f chi2tail(k,N*R2)
+
+
+Estatística do teste:     8.47    P-valor:    0.0145
+
+. 
+.                 drop e y_hat e2 y_hat2
+
+.                 
+.         // # 3.4 HETEROSKEDASTICITY TEST on the FULL MODEL
+. 
+.                 regress lwage educ exper exper2 married nonwhite female dummy_1 dummy_2 female_ed
+> uc
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(9, 516)       =     38.97
+       Model |  60.0269659         9  6.66966287   Prob > F        =    0.0000
+    Residual |  88.3027855       516  .171129429   R-squared       =    0.4047
+-------------+----------------------------------   Adj R-squared   =    0.3943
+       Total |  148.329751       525   .28253286   Root MSE        =    .41368
+
+------------------------------------------------------------------------------
+       lwage | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        educ |   .0807228   .0090908     8.88   0.000     .0628633    .0985824
+       exper |   .0373474   .0053888     6.93   0.000     .0267607    .0479341
+      exper2 |  -.0006811   .0001187    -5.74   0.000    -.0009143    -.000448
+     married |   .0767789    .043271     1.77   0.077    -.0082302     .161788
+    nonwhite |  -.0079653   .0601714    -0.13   0.895    -.1261763    .1102457
+      female |  -.3033839   .1738645    -1.74   0.082    -.6449532    .0381854
+     dummy_1 |  -.0549544   .0425916    -1.29   0.198    -.1386286    .0287198
+     dummy_2 |  -.0639049   .0609847    -1.05   0.295    -.1837138     .055904
+ female_educ |  -.0016574   .0135433    -0.12   0.903    -.0282642    .0249494
+       _cons |   .4351567   .1287511     3.38   0.001     .1822159    .6880976
+------------------------------------------------------------------------------
+
+.                 
+.                         predict e, resid
+
+.                         predict y_hat
+(option xb assumed; fitted values)
+
+.                         
+.                                 gen e2 = e^2
+
+.                                 
+.                         
+.                         regress e2 educ exper exper2 married nonwhite female dummy_1 dummy_2 fema
+> le_educ
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(9, 516)       =      2.37
+       Model |   1.6306722         9    .1811858   Prob > F        =    0.0125
+    Residual |  39.4615853       516  .076475941   R-squared       =    0.0397
+-------------+----------------------------------   Adj R-squared   =    0.0229
+       Total |  41.0922575       525  .078270967   Root MSE        =    .27654
+
+------------------------------------------------------------------------------
+          e2 | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        educ |   .0016561   .0060772     0.27   0.785     -.010283    .0135951
+       exper |   .0135081   .0036024     3.75   0.000     .0064309    .0205853
+      exper2 |  -.0002642   .0000793    -3.33   0.001      -.00042   -.0001084
+     married |   -.050135   .0289266    -1.73   0.084    -.1069634    .0066934
+    nonwhite |   .0156257   .0402244     0.39   0.698    -.0633982    .0946495
+      female |  -.1402229    .116228    -1.21   0.228    -.3685613    .0881155
+     dummy_1 |  -.0262775   .0284724    -0.92   0.356    -.0822135    .0296585
+     dummy_2 |  -.0788489   .0407682    -1.93   0.054    -.1589409    .0012431
+ female_educ |   .0099534   .0090537     1.10   0.272    -.0078332      .02774
+       _cons |   .1003135   .0860699     1.17   0.244     -.068777    .2694039
+------------------------------------------------------------------------------
+
+.                                 estimates store residuals
+
+. 
+.                         scalar N=e(N)
+
+.                         scalar R2=e(r2)
+
+.                         scalar k=e(df_m)
+
+.                                 
+.                                 di _new(2) "Estatística do teste:    " %5.2f N*R2 "    P-valor:  
+>   " %5.4f chi2tail(k,N*R2)
+
+
+Estatística do teste:    20.87    P-valor:    0.0132
+
+. 
+.                 regress lwage educ exper exper2 married nonwhite female dummy_1 dummy_2 female_ed
+> uc
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(9, 516)       =     38.97
+       Model |  60.0269659         9  6.66966287   Prob > F        =    0.0000
+    Residual |  88.3027855       516  .171129429   R-squared       =    0.4047
+-------------+----------------------------------   Adj R-squared   =    0.3943
+       Total |  148.329751       525   .28253286   Root MSE        =    .41368
+
+------------------------------------------------------------------------------
+       lwage | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        educ |   .0807228   .0090908     8.88   0.000     .0628633    .0985824
+       exper |   .0373474   .0053888     6.93   0.000     .0267607    .0479341
+      exper2 |  -.0006811   .0001187    -5.74   0.000    -.0009143    -.000448
+     married |   .0767789    .043271     1.77   0.077    -.0082302     .161788
+    nonwhite |  -.0079653   .0601714    -0.13   0.895    -.1261763    .1102457
+      female |  -.3033839   .1738645    -1.74   0.082    -.6449532    .0381854
+     dummy_1 |  -.0549544   .0425916    -1.29   0.198    -.1386286    .0287198
+     dummy_2 |  -.0639049   .0609847    -1.05   0.295    -.1837138     .055904
+ female_educ |  -.0016574   .0135433    -0.12   0.903    -.0282642    .0249494
+       _cons |   .4351567   .1287511     3.38   0.001     .1822159    .6880976
+------------------------------------------------------------------------------
+
+.                                 estat hettest,rhs iid           // procedimento automático
+
+Breusch–Pagan/Cook–Weisberg test for heteroskedasticity 
+Assumption: i.i.d. error terms
+Variables: All independent variables
+
+H0: Constant variance
+
+    chi2(9) =  20.87
+Prob > chi2 = 0.0132
+
+. 
+. // # 4. utilização do procedimento do Stata para corrigir para a heteroscedasticidade
+. 
+.     // aplicar apenas se existir heteroscedasticidade
+. 
+.                 // -- >> REGRESSION 6: column 7 of the estimates table
+.                 
+.         regress lwage educ exper exper2 married nonwhite female dummy_1 dummy_2 female_educ, robu
+> st
+
+Linear regression                               Number of obs     =        526
+                                                F(9, 516)         =      40.82
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.4047
+                                                Root MSE          =     .41368
+
+------------------------------------------------------------------------------
+             |               Robust
+       lwage | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        educ |   .0807228   .0093694     8.62   0.000      .062316    .0991296
+       exper |   .0373474   .0052855     7.07   0.000     .0269637    .0477312
+      exper2 |  -.0006811    .000114    -5.97   0.000    -.0009051   -.0004572
+     married |   .0767789   .0418128     1.84   0.067    -.0053652    .1589231
+    nonwhite |  -.0079653   .0633679    -0.13   0.900    -.1324561    .1165256
+      female |  -.3033839   .1876353    -1.62   0.107     -.672007    .0652392
+     dummy_1 |  -.0549544   .0438145    -1.25   0.210    -.1410311    .0311223
+     dummy_2 |  -.0639049   .0563961    -1.13   0.258    -.1746991    .0468893
+ female_educ |  -.0016574   .0149624    -0.11   0.912    -.0310522    .0277373
+       _cons |   .4351567   .1333565     3.26   0.001     .1731683    .6971451
+------------------------------------------------------------------------------
+
+.             est store robust
+
+. 
+.                         matrix list e(V)
+
+symmetric e(V)[10,10]
+                    educ        exper       exper2      married     nonwhite       female
+       educ    .00008779
+      exper   -6.510e-06    .00002794
+     exper2    2.747e-07   -5.778e-07    1.300e-08
+    married   -.00001661   -.00008158    1.332e-06    .00174831
+   nonwhite    .00007651   -.00003349    8.416e-07    .00039524    .00401549
+     female     .0008484    -.0000375    7.517e-07    .00142591    .00117753    .03520702
+    dummy_1    .00008386   -.00004361    1.364e-06   -.00016939   -.00025569   -.00086473
+    dummy_2     .0001634   -.00007996    2.173e-06   -.00005536   -.00016399   -.00096291
+female_educ   -.00006742    2.703e-06   -6.398e-08   -.00009688   -.00008609   -.00275124
+      _cons   -.00117949   -.00001124   -1.980e-06   -.00027361   -.00134725   -.01180432
+
+                 dummy_1      dummy_2  female_educ        _cons
+    dummy_1    .00191971
+    dummy_2    .00116764    .00318052
+female_educ    .00003333    .00006668    .00022387
+      _cons   -.00156121   -.00263111    .00089347    .01778395
+
+.                 
+.         // colinearidade
+.         
+.                 vif
+
+    Variable |       VIF       1/VIF  
+-------------+----------------------
+      female |     23.19    0.043126
+ female_educ |     22.99    0.043494
+       exper |     16.41    0.060938
+      exper2 |     16.39    0.061001
+        educ |      1.94    0.514407
+     married |      1.37    0.729287
+     dummy_1 |      1.32    0.755401
+     dummy_2 |      1.32    0.758238
+    nonwhite |      1.03    0.975427
+-------------+----------------------
+    Mean VIF |      9.55
+
+.                 
+. // # 5. exportar o resultado das extimações para uma tabela 'word'
+. 
+. estimates dir
+
+----------------------------------------------------------------
+             |           Dependent  Number of        
+        Name | Command    variable     param.  Title 
+-------------+--------------------------------------------------
+        ols1 | regress       lwage          4  Linear regression
+        ols0 | regress       lwage          2  Linear regression
+        ols2 | regress       lwage          6  Linear regression
+        ols3 | regress       lwage          6  Linear regression
+        ols4 | regress       lwage          6  Linear regression
+        ols5 | regress       lwage         10  Linear regression
+   residuals | regress          e2         10  Linear regression
+      robust | regress       lwage         10  Linear regression
+----------------------------------------------------------------
+
+. 
+. esttab ols1 ols2 ols3 ols4 ols5 residuals robust,b(%4.3f) se(%5.4f) star(* 0.1 ** 0.05 *** 0.01) 
+> scalars("N Observações" "r2 R2" "rmse Root MSE")
+
+---------------------------------------------------------------------------------------------------
+> -------------------------
+                      (1)             (2)             (3)             (4)             (5)          
+>    (6)             (7)   
+                    lwage           lwage           lwage           lwage           lwage          
+>     e2           lwage   
+---------------------------------------------------------------------------------------------------
+> -------------------------
+educ                0.090***        0.088***        0.087***        0.080***        0.081***       
+>  0.002           0.081***
+                 (0.0075)        (0.0075)        (0.0093)        (0.0104)        (0.0091)        (0
+> .0061)        (0.0094)   
+
+exper               0.041***        0.035***        0.045***        0.027***        0.037***       
+>  0.014***        0.037***
+                 (0.0052)        (0.0056)        (0.0073)        (0.0073)        (0.0054)        (0
+> .0036)        (0.0053)   
+
+exper2             -0.001***       -0.001***       -0.001***       -0.001***       -0.001***       
+> -0.000***       -0.001***
+                 (0.0001)        (0.0001)        (0.0002)        (0.0002)        (0.0001)        (0
+> .0001)        (0.0001)   
+
+married                             0.119***        0.189***       -0.071           0.077*         
+> -0.050*          0.077*  
+                                 (0.0448)        (0.0617)        (0.0559)        (0.0433)        (0
+> .0289)        (0.0418)   
+
+nonwhite                            0.001           0.068          -0.117          -0.008          
+>  0.016          -0.008   
+                                 (0.0642)        (0.0822)        (0.0854)        (0.0602)        (0
+> .0402)        (0.0634)   
+
+female                                                                             -0.303*         
+> -0.140          -0.303   
+                                                                                 (0.1739)        (0
+> .1162)        (0.1876)   
+
+dummy_1                                                                            -0.055          
+> -0.026          -0.055   
+                                                                                 (0.0426)        (0
+> .0285)        (0.0438)   
+
+dummy_2                                                                            -0.064          
+> -0.079*         -0.064   
+                                                                                 (0.0610)        (0
+> .0408)        (0.0564)   
+
+female_educ                                                                        -0.002          
+>  0.010          -0.002   
+                                                                                 (0.0135)        (0
+> .0091)        (0.0150)   
+
+_cons               0.128           0.143           0.146           0.264*          0.435***       
+>  0.100           0.435***
+                 (0.1059)        (0.1065)        (0.1374)        (0.1415)        (0.1288)        (0
+> .0861)        (0.1334)   
+---------------------------------------------------------------------------------------------------
+> -------------------------
+N                     526             526             274             252             526          
+>    526             526   
+R2                  0.300           0.310           0.416           0.234           0.405          
+>  0.040           0.405   
+Root MSE            0.446           0.444           0.412           0.393           0.414          
+>  0.277           0.414   
+---------------------------------------------------------------------------------------------------
+> -------------------------
+Standard errors in parentheses
+* p<0.1, ** p<0.05, *** p<0.01
+
+. 
+.                 esttab ols1 ols2 ols3 ols4 ols5 residuals robust using regression_results_alt.rtf
+> , replace ///
+>                         keep(educ exper exper2 married nonwhite) ///
+>                         mtitle("Model (1)" "Model (2)" "Model (3)" "Modelo (4)" "Final model" "Re
+> siduals" "Robust") nonumbers ///
+>                         coeflabel (educ "Education" exper "Experience" exper2 "Experience sq." ma
+> rried "Married" nonwhite "non-White") ///
+>                         b(%5.3f) se(%5.3f) star(* 0.1 ** 0.05 *** 0.01) ///
+>                         scalars("N Observações" "r2 R2" "rmse Root MSE") ///
+>                         title("Table 2: Regression analysis") ///
+>                         nonotes addnotes("Notes: standard errors in parenthesis. Significance lev
+> els: *, 10%; **, 5%; ***, 1%." "The dependent variable is ln real GDP per workers." "Source: own 
+> computations.")
+(output written to regression_results_alt.rtf)
+
+. 
+. log close
+      name:  <unnamed>
+       log:  /Users/miguelportela/Documents/GitHub/econometrics_notebook/stata/econometria.ii.assig
+> ment.txt
+  log type:  text
+ closed on:  11 Jul 2021, 15:49:29
+---------------------------------------------------------------------------------------------------
