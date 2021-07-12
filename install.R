@@ -3,7 +3,6 @@ install.packages("pacman")
 install.packages("tidyverse")
 install.packages("haven")
 
-install.packages('summarytools')
 install.packages('car')
 install.packages('AER')
 install.packages('plm')
@@ -14,6 +13,8 @@ install.packages("rmarkdown")
 install.packages('bookdown')
 install.packages('tinytex')
 tinytex::install_tinytex()
+
+install.packages(c("ggpubr", "here", "rstatix", "summarytools"))
 
 # install.packages('broom')
 # install.packages('clubSandwich')
