@@ -3,4 +3,14 @@ channels:
 dependencies:
   - r-base=4.1
   - r-tidyverse
+  - r-haven
+  - r-devtools
+  - r-summarytools
+  - r-car
+  - r-aer
+  - r-plm
+  - r-stargazer
+  - r-knitr
+  - r-rmarkdown
+  - r-bookdown
   
