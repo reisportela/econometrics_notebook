@@ -18,7 +18,8 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 rm(list = ls())
 start_time <- Sys.time()
 library(here)
-setwd("/Users/miguelportela/Documents/GitHub/econometrics_notebook")
+# setwd("/Users/miguelportela/Documents/GitHub/econometrics_notebook")
+# setwd('C:/Users/mangelo.EEG/Documents/GitHub/econometrics_notebook)
 ```
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I* (or *CTRL+Alt+I* in Windows).
