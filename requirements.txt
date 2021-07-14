@@ -1,0 +1,15 @@
+pandas
+numpy
+matplotlib
+statistics
+statsmodels
+scikit-learn
+
+#sympy
+#scipy
+#sklearn
+#seaborn
+#hunter
+#beautifulsoup4
+#mechanicalsoup
+#markdown
