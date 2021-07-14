@@ -255,7 +255,7 @@ ggplot(wage1) +
 ## EXPLORE: https://statsandr.com/blog/correlogram-in-r-how-to-highlight-the-most-correlated-variables-in-a-dataset/
 
 freq(wage1$female)
-ctable(x=wage1$female,y=wage1$married)
+# ctable(x=wage1$female,y=wage1$married)
 summarytools::descr(wage1)
 dfSummary(wage1)
 
