@@ -264,7 +264,7 @@ dfSummary(wage1)
 
 And now we __report__ some *frequency tables*:
 
-```{r Frequency tables}
+```{r Frequency tables, eval=FALSE}
 table(wage1$female)
 tbl1 <- as.data.frame(table(wage1$nonwhite))
 tbl1
@@ -317,8 +317,8 @@ tbl2/sum(tbl2)
 
 # Cross-tabulations with ctable()
 summarytools::ctable( x = wage1$female, y = wage1$married)
-
 ```
+
 
 ## Alternative descriptives
 
